@@ -1,5 +1,5 @@
 
-dog breeds - v3 2023-11-10 3:29pm
+dog breeds - v3 2023-11-10
 ============================================================
 
 This dataset was exported via roboflow.com on November 10, 2023 at 6:30 AM GMT
