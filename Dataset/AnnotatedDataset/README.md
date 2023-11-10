@@ -28,6 +28,3 @@ No image augmentation techniques were applied.
 
 download the dataset
 : export dataset or using terminal
-
-* terminal
-curl -L "https://app.roboflow.com/ds/BZw8IgLuaW?key=Gs8NIzK8SG" &gt; roboflow.zip; unzip roboflow.zip; rm roboflow.zip
