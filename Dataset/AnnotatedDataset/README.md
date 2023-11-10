@@ -1,6 +1,6 @@
 
 dog breeds - v3 2023-11-10 3:29pm
-==============================
+============================================================
 
 This dataset was exported via roboflow.com on November 10, 2023 at 6:30 AM GMT
 
@@ -24,4 +24,9 @@ The following pre-processing was applied to each image:
 
 No image augmentation techniques were applied.
 
+============================================================
 
+download the dataset
+
+<<terminal>>
+curl -L "https://app.roboflow.com/ds/BZw8IgLuaW?key=Gs8NIzK8SG" &gt; roboflow.zip; unzip roboflow.zip; rm roboflow.zip
