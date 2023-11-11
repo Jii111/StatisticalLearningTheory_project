@@ -33,3 +33,6 @@ No image augmentation techniques were applied.
 * Maltese(452 imgs) : StanfordDogDataset(252) + AnnotatedDataset(200)  
 
 ⇒ train/valid/test = 70%/15%/15% 비율로 split
+  train : https://drive.google.com/file/d/1e6sCLWW-3lWwkz3B5uBI5cZ6p5jg-aKR/view?usp=sharing
+  valid : https://drive.google.com/file/d/1vN-vHOl6IJ2vitJPC1OG-TS8RHtj-7AL/view?usp=sharing
+  test : https://drive.google.com/file/d/1ZMoDHfd9I4_qe67WwYPyZGvqmO56PPkt/view?usp=sharing
