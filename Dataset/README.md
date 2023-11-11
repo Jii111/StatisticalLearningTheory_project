@@ -31,3 +31,5 @@ No image augmentation techniques were applied.
 * Shih-Tzu(416 imgs) : StanfordDogDataset(214) + AnnotatedDataset(202)    
 * Chihuahua(417 imgs) : StanfordDogDataset(152) + AnnotatedDataset(265)   
 * Maltese(452 imgs) : StanfordDogDataset(252) + AnnotatedDataset(200)  
+
+⇒ train/valid/test = 70%/15%/15% 비율로 split
