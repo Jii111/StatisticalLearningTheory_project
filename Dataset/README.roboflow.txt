@@ -1,6 +1,6 @@
 
-최종데이터 - v1 2023-11-11 11:02am
-==============================
+## 최종데이터
+============================================================
 
 This dataset was exported via roboflow.com on November 11, 2023 at 2:03 AM GMT
 
@@ -24,4 +24,10 @@ The following pre-processing was applied to each image:
 
 No image augmentation techniques were applied.
 
+============================================================
 
+Pomeranian(419 imgs) : StanfordDogDataset(219) + AnnotatedDataset(200)
+Poodle(359 imgs) : StanfordDogDataset(159) + AnnotatedDataset(200)
+Shih-Tzu(416 imgs) : StanfordDogDataset(214) + AnnotatedDataset(202)
+Chihuahua(417 imgs) : StanfordDogDataset(152) + AnnotatedDataset(265)
+Maltese(452 imgs) : StanfordDogDataset(252) + AnnotatedDataset(200)
