@@ -1,0 +1,40 @@
+import os
+import cv2
+import matplotlib.pyplot as plt
+
+from google.colab import drive
+drive.mount('/content/drive')
+
+def image_mean_color_histogram(image_folder):
+    img_files = [f for f in os.listdir(image_folder) if f.endswith(('.jpg'))]
+
+    mean_color_values = {'blue': [], 'green': [], 'red': []}
+
+    for img_file in img_files:
+        img_path = os.path.join(image_folder, img_file)
+        img = cv2.imread(img_path)
+
+        # 평균 색 계산
+        mean_color = img.mean(axis=(0, 1))
+
+        mean_color_values['blue'].append(mean_color[0])
+        mean_color_values['green'].append(mean_color[1])
+        mean_color_values['red'].append(mean_color[2])
+
+    # 히스토그램
+    plot_mean_color_histogram(mean_color_values)
+
+def plot_mean_color_histogram(mean_color_values):
+    plt.hist(mean_color_values['blue'], bins=50, color='blue', alpha=0.7, label='Blue')
+    plt.hist(mean_color_values['green'], bins=50, color='green', alpha=0.7, label='Green')
+    plt.hist(mean_color_values['red'], bins=50, color='red', alpha=0.7, label='Red')
+
+    plt.title('Histogram of Mean Color Values')
+    plt.xlabel('Mean Color Value')
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.show()
+
+# path에 train/test/valid 폴더 번갈아 가면서 넣으면 됨
+image_folder_path = '/content/drive/MyDrive/통학론프로젝트/test'
+image_mean_color_histogram(image_folder_path)
