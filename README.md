@@ -5,7 +5,7 @@
 - **중간 기획안** : https://docs.google.com/presentation/d/1GDTCmuw3rHQ7H0_3fkJ3IjDLiDAqe9bGe2xEAvq_tcM/edit#slide=id.p  
 - **최종 발표 자료** :  
 
-```python
+```
 StatisticalLearningTheory_project  
 ├─  통계분석    
 │  ├─ RGB  
@@ -19,6 +19,6 @@ StatisticalLearningTheory_project
 │  ├─ data_augmentation  
 │  ├─ augmentation+file  
 |  
-├─  Models
-│  ├─ detectron2
+├─  Models  
+│  ├─ detectron2  
 ```
