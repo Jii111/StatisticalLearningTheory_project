@@ -1,0 +1,68 @@
+# 이미지 사이즈와 분류 성능 간의 상관관계
+import os
+import cv2
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix
+import matplotlib.pyplot as plt
+
+def load_and_preprocess_image(image_path, target_size=(224, 224)):
+    img = cv2.imread(image_path)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = cv2.resize(img, target_size)
+    img_array = img.flatten()  # 이미지를 펼쳐서 1차원 배열로 변환
+    return img_array
+
+def load_dataset(image_folder, target_size=(224, 224), num_samples=None):
+    image_paths = [os.path.join(image_folder, img) for img in os.listdir(image_folder) if img.endswith(('.jpg', '.jpeg', '.png', '.gif'))]
+    if num_samples:
+        image_paths = image_paths[:num_samples]
+
+    X = []
+    y = []
+
+    for img_path in image_paths:
+        label = 1 if 'positive' in img_path else 0  # 예시: 'positive'가 포함된 파일은 클래스 1, 그 외는 클래스 0
+        img_array = load_and_preprocess_image(img_path, target_size)
+        X.append(img_array)
+        y.append(label)
+
+    return np.array(X), np.array(y)
+
+def train_and_evaluate(X, y):
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # 간단한 분류 모델 (예시로 RandomForestClassifier 사용)
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
+
+    # 테스트 데이터에 대한 예측
+    y_pred = model.predict(X_test)
+
+    # 분류 성능 평가
+    accuracy = accuracy_score(y_test, y_pred)
+    confusion_mat = confusion_matrix(y_test, y_pred)
+
+    return accuracy, confusion_mat
+
+# 이미지가 있는 폴더 경로
+image_folder_path = '/content/drive/MyDrive/test/test'
+
+# 데이터셋 로드
+X, y = load_dataset(image_folder_path, num_samples=None)  # num_samples에 원하는 샘플 수를 지정할 수 있습니다.
+
+# 이미지 크기 및 분류 성능 평가
+accuracy, confusion_matrix = train_and_evaluate(X, y)
+
+# 결과 출력/ test, train, valid 마다 이름 바꿔주기
+print(f"Train_Accuracy: {accuracy}")
+print("Train_Confusion Matrix:")
+print(confusion_matrix)
+
+# 이미지 크기와 분류 성능 간의 상관 관계 시각화/ test, train, valid 마다 이름 바꿔주기
+plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Paired, edgecolors='k')
+plt.xlabel('Train Image Size Feature 1')
+plt.ylabel('Train Image Size Feature 2')
+plt.title('Train Image Size vs. Classification Performance')
+plt.show()
