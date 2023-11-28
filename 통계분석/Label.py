@@ -38,3 +38,21 @@ def plot_label_distribution(label_counts):
     plt.ylabel('Count')
     plt.title('Label Distribution')
     plt.show()
+
+# train
+data_folder = os.path.join(output_folder, 'train')
+label_counts = analyze_label_distribution(data_folder)
+print("Train Label Distribution:", label_counts)
+plot_label_distribution(label_counts)
+
+# test
+data_folder = os.path.join(output_folder, 'test')
+label_counts = analyze_label_distribution(data_folder)
+print("Test Label Distribution:", label_counts)
+plot_label_distribution(label_counts)
+
+# valid
+data_folder = os.path.join(output_folder, 'valid')
+label_counts = analyze_label_distribution(data_folder)
+print("Valid Label Distribution:", label_counts)
+plot_label_distribution(label_counts)
