@@ -1,0 +1,26 @@
+# root 안에 본인 테스트 데이터셋 경로로 변경
+
+mnist_test = datasets.MNIST(root="/content/drive/MyDrive/test", train=True, transform=transforms.ToTensor(), target_transform=None, download=True)
+test_loader = DataLoader(mnist_test, batch_size=batch_size, shuffle=True, num_workers=2, drop_last=True)
+
+#predict 함수 정의
+def predict(model, data):
+    model.eval()
+    with torch.no_grad():
+        output = model(data)
+        probabilities = torch.nn.functional.softmax(output, dim=1)
+        confidence_score, predicted_class = torch.max(probabilities, 1)
+    return probabilities, predicted_class, confidence_score
+
+for image, label in test_loader:
+    x = image.to(device)
+    y = label.to(device)
+
+    # 모델을 동일한 장치로 이동
+    model.to(device)
+
+    probabilities, predicted_class, confidence_score = predict(model, x)
+
+    print("Class Probabilities:", probabilities.cpu().numpy())
+    print("Predicted Class:", predicted_class.item())
+    print("Confidence Score:", confidence_score)
