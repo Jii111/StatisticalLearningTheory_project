@@ -1,0 +1,35 @@
+import cv2
+import os
+
+# 이미지 파일들이 있는 디렉토리 경로
+image_directory = 'your_image_directory'  # 디렉토리 경로를 적절히 수정하세요
+
+# 가우시안 혼합 배경제거 알고리즘
+fgbg = cv2.createBackgroundSubtractorMOG2()
+
+def MOG(frame):
+    fgmask = fgbg.apply(frame)
+    _, fgmask = cv2.threshold(fgmask, 175, 255, cv2.THRESH_BINARY)
+    results = cv2.findContours(
+        fgmask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+    for contour in results[0]:
+        x, y, w, h = cv2.boundingRect(contour)
+        cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
+
+# 지정된 디렉토리의 모든 이미지 파일에 대해 처리
+for filename in os.listdir(image_directory):
+    if filename.endswith(".jpg") or filename.endswith(".png"):  # 확장자에 따라 수정
+        image_path = os.path.join(image_directory, filename)
+        
+        # 이미지 불러오기
+        image = cv2.imread(image_path)
+
+        # 알고리즘 연산
+        MOG(image)
+
+        # 결과 표시
+        cv2.imshow('image', image)
+        cv2.waitKey(0)
+
+cv2.destroyAllWindows()
