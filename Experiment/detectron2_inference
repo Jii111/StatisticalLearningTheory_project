@@ -1,0 +1,31 @@
+# ditectron2 모델 아래에다 추가해서 돌림
+# Load the trained model
+cfg.MODEL.WEIGHTS = "/content/drive/MyDrive/thlproject/detectron2best.pth"
+predictor = DefaultPredictor(cfg)
+
+# Inference on test dataset
+test_dataset_dicts = get_dicts(test_dataset_dir, test_json_dir)
+
+results = []
+for d in test_dataset_dicts:
+    im = cv2.imread(d["file_name"])
+    outputs = predictor(im)
+
+    # Extract predictions for each image
+    instances = outputs["instances"].to("cpu")
+    pred_classes = instances.pred_classes.numpy()
+    pred_boxes = instances.pred_boxes.tensor.numpy()
+
+    # Collect results for further analysis or saving
+    results.append({
+        "file_name": d["file_name"],
+        "predictions": {
+            "pred_classes": pred_classes.tolist(),
+            "pred_boxes": pred_boxes.tolist()
+        }
+    })
+
+# Save results to a JSON file or perform further analysis
+output_json_path = "/content/drive/MyDrive/thlproject/detectron2_aug.json"  # 저장할 JSON 파일 경로 설정
+with open(output_json_path, "w") as f:
+    json.dump(results, f)
