@@ -1,0 +1,28 @@
+#라이브러리 불러오기
+import json
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+# 실제 파일 경로, 예측 파일 경로 입력하고 불러오기
+actual_classes_file_path = '' 
+predicted_classes_file_path = ''
+
+# JSON 파일 읽어오기
+with open(actual_classes_file_path, 'r') as actual_file:
+    actual_classes = json.load(actual_file)
+
+with open(predicted_classes_file_path, 'r') as predicted_file:
+    predicted_classes = json.load(predicted_file)
+
+# 정확도
+accuracy = accuracy_score(actual_classes, predicted_classes)
+
+# 정밀도
+precision = precision_score(actual_classes, predicted_classes, average='micro')  # 또는 'macro', 'weighted'
+
+# 재현율
+recall = recall_score(actual_classes, predicted_classes, average='micro')  # 또는 'macro', 'weighted'
+
+# F1 점수
+f1 = f1_score(actual_classes, predicted_classes, average='micro')  # 또는 'macro', 'weighted'
+
+print(f"Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1 Score: {f1}")
