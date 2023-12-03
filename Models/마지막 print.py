@@ -70,7 +70,7 @@ import glob
 from IPython.display import Image, display
 from IPython.display import Video, display
 
-for imageName in glob.glob('/content/yolov5/runs/detect/exp58/*.jpg'): #assuming JPG
+for imageName in glob.glob('/content/yolov5/runs/detect/exp5/*.jpg'): #assuming JPG
     display(Image(filename=imageName))
     print("\n")
 
