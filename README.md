@@ -20,7 +20,8 @@ StatisticalLearningTheory_project
 │  ├─ AnnotatedDataset  
 │  ├─ StanfordDogDataset  
 │  ├─ data_augmentation  
-│  ├─ augmentation+file  
+│  ├─ augmentation+file
+│  ├─ data_split
 |  
 ├─  Models  
 │  ├─ detectron2
