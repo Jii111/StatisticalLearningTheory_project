@@ -1,0 +1,114 @@
+### YOLOv7
+### data에 대한 yaml 파일, best.pt 파일 필요 
+# YOLOv7 모델 이용을 위한 초기 환경 세팅
+!git clone https://github.com/SkalskiP/yolov7.git
+%cd yolov7
+!git checkout fix/problems_associated_with_the_latest_versions_of_pytorch_and_numpy
+# 라이브러리 설치
+!pip install -r requirements.txt
+
+## detect : 탐지된 이미지와 bbox 등의 정보가 담긴 label 폴더 생성
+# original data
+!python detect.py --source /content/yolov7/1129test-1/train/images --img-size 640 --weights '/content/best (1).pt' --name yolov7_original_detect --save-txt --save-conf
+# crop data
+!python detect.py --source /content/yolov7/1129test-2/train/images --img-size 640 --weights '/content/best (1).pt' --name yolov7_crop_detect --save-txt --save-conf
+# augmentation data
+!python detect.py --source /content/yolov7/1129test-3/train/images --img-size 640 --weights '/content/best (1).pt' --name yolov7_augmentation_detect --save-txt --save-conf
+
+## 잘 탐지되었는지 확인
+
+import glob
+from IPython.display import Image, display
+
+i = 0
+limit = 10000 # max images to print
+for imageName in glob.glob('/content/yolov7/runs/detect/exp/*.jpg'): #assuming JPG
+    if i < limit:
+      display(Image(filename=imageName))
+      print("\n")
+    i = i + 1
+
+## test : mAP, PR curve, F1 curve 등 성능 지표 및 plot 계산
+# original data
+!python test.py --data /content/coco_customcolab.yaml --img 640 --batch 32 --conf 0.001 --weights '/content/best (1).pt' --name yolov7_original_test --task "test" --save-txt --save-conf
+# crop data
+!python test.py --data /content/coco_customcolab.yaml --img 640 --batch 32 --conf 0.001 --weights '/content/best (1).pt' --name yolov7_crop_test --task "test"
+# augmentation data
+!python test.py --data /content/coco_customcolab.yaml --img 640 --batch 32 --conf 0.001 --weights '/content/best (1).pt' --name yolov7_augmentation_test
+ --task "test"
+
+## export
+!zip -r export_test.zip /content/yolov7/runs/test
+
+### YOLOv5
+#yolov5 모델 실행을 위한 초기 환경 세팅 
+!git clone https://github.com/ultralytics/yolov5  # clone repo
+%cd yolov5
+%pip install -qr requirements.txt # install 
+
+import torch
+import os
+import glob
+from IPython.display import Image, clear_output  # to display images
+
+## detect : 탐지된 이미지와 bbox 등의 정보가 담긴 label 폴더 생성
+# original data, crop data, augmentation data에 대해 경로만 다르게 지정해주면 됨
+!python detect.py --weights /content/drive/MyDrive/projecttrain/yolov5train/yolov5best.pt --img 640 --source /content/yolov5/1129orginaltest/train/images --save-txt --save-conf
+
+# 잘 탐지되었는지 확인
+for imageName in glob.glob('/content/yolov5/runs/detect/exp/*.jpg'): #assuming JPG
+    display(Image(filename=imageName))
+    print("\n")
+
+## test : mAP, PR curve, F1 curve 등 성능 지표 및 plot 계산
+# original data, crop data, augmentation data에 대해 경로만 다르게 지정해주면 됨
+!python val.py  --weights /content/drive/MyDrive/projecttrain/yolov5train/yolov5best.pt --img 640 --batch 32 --task 'test' --data /content/drive/MyDrive/projecttrain/yolov5train/datacococustom_yolov5.yaml  --save-txt --save-conf
+
+### EfficientDet
+# dataset 파일과 mAP_evaluation_custom 파일 필요 
+import os
+import sys
+sys.path.append("Monk_Object_Detection/4_efficientdet/lib/");
+from infer_detector import Infer
+
+# 학습한 가중치 및 모델 불러오기
+gtf = Infer();
+gtf.Model(model_dir="/content/efficientdetweights.pt")
+
+# class 정보 불러오기
+import json
+with open('train/_annotations.coco.json') as json_file:
+    data = json.load(json_file)
+class_list = []
+for category in data['categories']:
+  class_list.append(category['name'])
+
+# 예측
+for img_path in imgs:
+  duration, scores, labels, boxes = gtf.Predict(img_path, class_list, vis_threshold=0.2);
+
+### Detectron2
+# detectron2 모델 사용을 위한 초기 환경 세팅
+!pip install git+https://github.com/facebookresearch/fvcore.git
+import torch, torchvision
+torch.__version__
+!git clone https://github.com/facebookresearch/detectron2 detectron2_repo
+%cd detectron2_repo
+
+from detectron2.data import DatasetCatalog, MetadataCatalog, build_detection_test_loader
+from detectron2.evaluation import COCOEvaluator, inference_on_dataset
+
+cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "/content/detectron2_repo/output/model_final.pth")
+cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
+predictor = DefaultPredictor(cfg)
+evaluator = COCOEvaluator("My_test_dataset", cfg, False, output_dir="./originaloutput/")
+val_loader = build_detection_test_loader(cfg, "My_test_dataset")
+inference_on_dataset(trainer.model, val_loader, evaluator)
+
+# crop dataset, augmentation dataset에 적용할 경우, 데이터셋 등록 후 데이터 이름 부분만 바꿔서 사용(다음 코드 수정, 나머지 동일)
+test_dataset_dir = "/content/1129test-2/train"
+test_json_dir = "/content/1129test-2/train/_annotations.coco.json"
+test_dataset_name = register_datasets("My_croptest_dataset", test_dataset_dir, test_json_dir)
+
+evaluator = COCOEvaluator("My_croptest_dataset", cfg, False, output_dir="./cropoutput/")
+val_loader = build_detection_test_loader(cfg, "My_croptest_dataset")
