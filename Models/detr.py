@@ -1,5 +1,6 @@
 # based on https://github.com/woctezuma/finetune-detr/blob/master/finetune_detr.ipynb
 
+# detr 모델 구현을 위한 초기 환경 세팅
 !rm -r transformers
 !git clone -b upload_detr_no_timm https://github.com/nielsrogge/transformers.git
 !cd /content/transformers
@@ -12,6 +13,7 @@ drive.mount('/content/drive')
 import torchvision
 import os
 
+# coco annotation 정보 불러오기기
 class CocoDetection(torchvision.datasets.CocoDetection):
     def __init__(self, img_folder, processor, train=True):
         ann_file = os.path.join(img_folder, "_annotations.coco.json" if train else "_annotations.coco.json")
@@ -51,16 +53,8 @@ import numpy as np
 import os
 from PIL import Image, ImageDraw
 
-image_ids = train_dataset.coco.getImgIds()
-# let's pick a random image
-image_id = image_ids[np.random.randint(0, len(image_ids))]
-print('Image n°{}'.format(image_id))
-image = train_dataset.coco.loadImgs(image_id)[0]
-image = Image.open(os.path.join('/content/drive/MyDrive/1129train.v2i.coco/train', image['file_name']))
-
 annotations = train_dataset.coco.imgToAnns[image_id]
 draw = ImageDraw.Draw(image, "RGBA")
-
 cats = train_dataset.coco.cats
 id2label = {k: v['name'] for k,v in cats.items()}
 
@@ -90,6 +84,7 @@ train_dataloader = DataLoader(train_dataset, collate_fn=collate_fn, batch_size=4
 val_dataloader = DataLoader(val_dataset, collate_fn=collate_fn, batch_size=2)
 batch = next(iter(train_dataloader))
 
+# detr 모델 클래스 정의의
 import pytorch_lightning as pl
 from transformers import DetrConfig, DetrForObjectDetection
 import torch
