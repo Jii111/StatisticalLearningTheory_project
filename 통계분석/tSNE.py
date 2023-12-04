@@ -4,6 +4,7 @@ image_dir = "../data/train"
 annotation_file="../data/train/_annotations.coco.json"
 coco=COCO(annotation_file)
 
+# annotation 파일 정보 불러오기
 data = []
 for ann_id in coco.getAnnIds():
     ann = coco.loadAnns(ann_id)[0]
@@ -17,13 +18,16 @@ for ann_id in coco.getAnnIds():
     })
 df = pd.DataFrame(data)
 
+# tSNE 적용을 위한 이미지 처리
 images = [resize(io.imread(img), (100, 100)) for img in df['image_path']]
 images_array = np.array(images)
 images_flat = images_array.reshape(images_array.shape[0], -1)
 
+# tSNE
 tsne = TSNE(n_components=2, random_state=42)
 images_tsne = tsne.fit_transform(images_flat)
 
+# tSNE 시각화
 cps_df = pd.DataFrame(columns=['CP1', 'CP2', 'target'],
                        data=np.column_stack((images_tsne, 
                                             df['category_id'])))
