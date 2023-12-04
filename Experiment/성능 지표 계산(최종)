@@ -1,0 +1,171 @@
+# original dataset, crop dataset, augmented dataset 3가지에 대해 적용
+# yolo annoation의 경우, annoation만 다르게 불러와 df로 저장한 후로는 코드 동일
+
+import json
+import pandas as pd
+from pycocotools.coco import COCO
+
+## predicted file 불러오기
+# JSON 파일 경로
+json_file_path = '/content/originaltest_bbox_results.json'
+# JSON 파일 불러오기
+with open(json_file_path, 'r') as file:
+    json_data = json.load(file)
+# JSON 데이터프레임으로 변환
+result_df = pd.DataFrame(json_data)
+
+## true file 불러오기
+# COCO 어노테이션 파일 경로
+coco_annotation_file = '/content/1129test-1/train/_annotations.coco.json'  # 실제 파일 경로로 변경해주세요
+# COCO 객체 생성
+coco = COCO(coco_annotation_file)
+# 정보 추출
+data = []
+for ann_id in coco.getAnnIds():
+    ann = coco.loadAnns(ann_id)[0]
+
+    # category_id에 해당하는 클래스 이름 가져오기
+    category_info = coco.loadCats(ann['category_id'])[0]
+    category_name = category_info['name']
+
+    data.append({
+        'image_id': ann['image_id'],
+        'category_id': ann['category_id'],
+        'category_name': category_name,  # 추가된 부분
+        'bbox': ann['bbox'],
+        'area': ann['area']
+    })
+# 데이터프레임으로 변환
+true_df = pd.DataFrame(data)
+
+## image_id 기준으로 두 dataframe 병합
+df_merged = pd.merge(result_df, true_df, on='image_id', suffixes=('_pred', '_actual'),how='inner')
+print(len(result_df),len(true_df),len(result_df),len(true_df),len(df_merged))
+
+## PR 커브
+class_labels = {
+    1:'Chihuahua',2:'Maltese',3:'Pomeranian',4:'Shih-Tzu',5:'Standard_Poodle'
+}
+
+plt.figure(figsize=(8, 8))
+# 클래스별 PR Curve 그리기
+for category_id in df_merged['category_id_pred'].unique():
+    class_label = class_labels.get(category_id, f'Class_{category_id}')  # 클래스 레이블이 지정되지 않았을 경우 기본값 사용
+    class_data = df_merged[df_merged['category_id_pred'] == category_id]
+    y_true = class_data['category_id_actual'] == category_id
+    y_scores = class_data['score']
+    precision, recall, _ = precision_recall_curve(y_true, y_scores)
+    pr_auc = auc(recall, precision)
+    plt.plot(recall, precision, label=f'{class_label} (AUC = {pr_auc:.2f})')
+
+# 전체 PR Curve 계산
+y_true_total = df_merged['category_id_actual'] == df_merged['category_id_pred']
+y_scores_total = df_merged['score']
+precision_total, recall_total, _ = precision_recall_curve(y_true_total, y_scores_total)
+pr_auc_total = auc(recall_total, precision_total)
+# 전체 PR Curve 그리기
+plt.plot(recall_total, precision_total, label=f'Total (AUC = {pr_auc_total:.2f})', linestyle='-', color='blue', linewidth=2)
+
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')
+plt.legend(loc='lower left')
+plt.show()
+
+## F1 curve
+fig, ax = plt.subplots(1, 1, figsize=(8, 8), tight_layout=True)
+
+# 전체에 대한 실제 레이블 및 스코어 추출
+y_true_total = df_merged['category_id_actual'] == df_merged['category_id_pred']
+y_scores_total = df_merged['score']
+# 전체에 대한 Precision-Recall 계산
+precision_total, recall_total, _ = precision_recall_curve(y_true_total, y_scores_total)
+# 전체에 대한 F1 Score 계산
+f1_scores_total = 2 * (precision_total * recall_total) / (precision_total + recall_total + 1e-16)
+px, py = np.linspace(0, 1,656), []
+# 전체 그래프 그리기
+ax.plot(px, f1_scores_total, label=f'all classes', linewidth=2, color='blue')
+
+# 클래스 별 그래프 그리기
+for category_id in df_merged['category_id_pred'].unique():
+    class_label = class_labels.get(category_id, f'Class_{category_id}')  # 클래스 레이블이 지정되지 않았을 경우 기본값 사용
+    class_data = df_merged[df_merged['category_id_pred'] == category_id]
+    y_true = class_data['category_id_actual'] == category_id
+    y_scores = class_data['score']
+    precision, recall, _ = precision_recall_curve(y_true, y_scores)
+
+    # F1 Score 계산
+    f1_scores_class = 2 * (precision * recall) / (precision + recall + 1e-16)
+    px, py = np.linspace(0, 1,len(f1_scores_class)), []
+    # 그래프 그리기
+    ax.plot(px,  f1_scores_class, label=f'{class_label}', linewidth=1)
+
+ax.set_xlabel('Confidence')
+ax.set_ylabel('F1')
+ax.legend()
+plt.show()
+
+## confusion matrix
+cm = confusion_matrix(df_merged['category_id_actual'], df_merged['category_id_pred'],normalize="true")
+
+# 시각화
+plt.figure(figsize=(6, 6))
+sns.heatmap(cm, annot=True, fmt=".2f", cmap="Blues", cbar=False,
+            xticklabels=['Chihuahua','Maltese','Pomeranian','Shih-Tzu','Standard_Poodle'], yticklabels=['Chihuahua','Maltese','Pomeranian','Shih-Tzu','Standard_Poodle'])
+plt.xlabel("Predicted")
+plt.ylabel("True")
+plt.title("Confusion Matrix")
+plt.show()
+
+## iou 
+def calculate_iou(bbox1, bbox2):
+
+    x1, y1, w1, h1 = bbox1
+    x2, y2, w2, h2 = bbox2
+    # 좌표 계산
+    intersection_x = max(0, min(x1 + w1, x2 + w2) - max(x1, x2))
+    intersection_y = max(0, min(y1 + h1, y2 + h2) - max(y1, y2))
+
+    # 교집합 영역
+    intersection_area = intersection_x * intersection_y
+    # 합집합 영역
+    union_area = (w1 * h1) + (w2 * h2) - intersection_area
+
+    # IoU 계산
+    iou = intersection_area / union_area if union_area > 0 else 0.0
+    return iou
+
+# 각 행에 대한 IoU 계산 및 결과 추가
+df_merged['iou'] = df_merged.apply(lambda row: calculate_iou(row['bbox_actual'], row['bbox_pred']), axis=1)
+
+print(df_merged[['image_id', 'iou','category_name']])
+# 클래스별 iou 계산
+df_merged.groupby('category_name')['iou'].mean().reset_index()
+# 전체 iou
+iou_result = df_merged['iou'].mean()
+
+## confidence score
+class_conf_result_df = result_df.groupby('category_id')['scoreS'].mean().reset_index()
+class_conf_result_df['category']=['Chihuahua','Maltese','Pomeranian','Shih-tzu','Poodle']
+class_conf_result_df
+
+## 클래스별 mAP
+coco_gt = COCO('/content/1129test-1/train/_annotations.coco.json')
+coco_result = coco_gt.loadRes('/content/drive/MyDrive/projecttrain/efficientdet test/originaltest_bbox_results.json')
+# COCOeval 초기화
+coco_eval = COCOeval(coco_gt, coco_result, 'bbox')
+
+# 계산 실행
+coco_eval.evaluate()
+coco_eval.accumulate()
+coco_eval.summarize()
+
+# 클래스 별 mAP@0.5 출력
+for i, catId in enumerate(coco_eval.params.catIds):
+    cat_info = coco_gt.cats.get(catId, {})
+    class_name = cat_info.get('name', f'Unknown Class {catId}')
+    class_index = i
+
+    # 각 클래스에 대한 mAP@0.5 값 가져오기
+    ap_at_05 = coco_eval.stats[class_index]
+    print(f"Class {i + 1} ({class_name}): mAP@0.5 = {ap_at_05:.4f}")
