@@ -1,0 +1,33 @@
+# git clone
+! git clone https://github.com/roboflow-ai/Monk_Object_Detection.git
+# 라이브러리 설치
+! cd Monk_Object_Detection/3_mxrcnn/installation && cat requirements_colab.txt | xargs -n 1 -L 1 pip install
+!pip install --force https://github.com/chengs/tqdm/archive/colab.zip
+!pip install efficientnet_pytorch
+!pip install tensorboardX
+
+# 데이터 준비
+!mkdir Chess
+!mkdir Chess/annotations
+!mkdir Chess/Annotations
+!mkdir Chess/Images
+%cp train/_annotations.coco.json Chess/annotations/instances_Images.json
+%cp train/*.jpg Chess/Images/
+
+# 모델 학습
+import os
+import sys
+sys.path.append("Monk_Object_Detection/4_efficientdet/lib/");
+from train_detector import Detector
+gtf = Detector();
+# 경로 설정
+root_dir = "./";
+coco_dir = "Chess";
+img_dir = "./";
+set_dir = "Images";
+# 훈련 데이터셋 및 모델 불러오기
+gtf.Train_Dataset(root_dir, coco_dir, img_dir, set_dir, batch_size=8, image_size=512, use_gpu=True)
+gtf.Model();
+gtf.Set_Hyperparams(lr=0.0001, val_interval=1, es_min_delta=0.0, es_patience=0)
+# Training
+gtf.Train(num_epochs=100, model_output_dir="trained/");
