@@ -37,6 +37,7 @@ StatisticalLearningTheory_project
 │  ├─ detectron2_inference
 │  ├─ FPS
 │  ├─ class probabilities & confidence score
+│  ├─ kogpt
 |  
 ├─  최종 프로그램
 ```
